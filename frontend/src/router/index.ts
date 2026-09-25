@@ -8,6 +8,7 @@ const Combiner = () => import('@/views/combiner/index.vue')
 const Stringmon = () => import('@/views/stringmon/index.vue')
 const Irradiance = () => import('@/views/irradiance/index.vue')
 const Cleaning = () => import('@/views/cleaning/index.vue')
+const CleaningDetail = () => import('@/views/cleaning/detail.vue')
 const Inspection = () => import('@/views/inspection/index.vue')
 const Defect = () => import('@/views/defect/index.vue')
 const Repair = () => import('@/views/repair/index.vue')
@@ -31,6 +32,7 @@ const router = createRouter({
     { path: '/stringmon', name: 'stringmon', component: Stringmon },
     { path: '/irradiance', name: 'irradiance', component: Irradiance },
     { path: '/cleaning', name: 'cleaning', component: Cleaning },
+    { path: '/cleaning/:id', name: 'cleaning-detail', component: CleaningDetail },
     { path: '/inspection', name: 'inspection', component: Inspection },
     { path: '/defect', name: 'defect', component: Defect },
     { path: '/repair', name: 'repair', component: Repair },
