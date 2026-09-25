@@ -19,15 +19,33 @@ STATUSES = ["待排期", "已排期", "清洗中", "已完成", "已取消"]
 @router.get("", response_model=PageResult[dict])
 def list_entries(
     keyword: str | None = Query(default=None, description="按任务编号检索"),
+    area: str | None = Query(default=None, description="按清洗区域过滤"),
+    team: str | None = Query(default=None, description="按作业班组过滤"),
+    month: str | None = Query(default=None, description="按计划月份过滤，格式 YYYY-MM"),
     status: str | None = Query(default=None, description="待排期、已排期、清洗中、已完成、已取消"),
     page: int = 1,
     size: int = 20,
 ) -> PageResult[dict]:
-    """按任务编号与状态过滤组件清洗列表；没有数据时返回空页，不报错。"""
+    """按编号、区域、班组、月份与状态过滤组件清洗列表；超期未完成的任务排在前面。"""
     if size > 200:
         raise HTTPException(status_code=400, detail="每页最多 200 条，请缩小分页范围")
-    items, total = service.list_entries(keyword=keyword, status=status, page=page, size=size)
+    items, total = service.list_entries(
+        keyword=keyword, area=area, team=team, month=month, status=status, page=page, size=size
+    )
     return PageResult(items=items, total=total, page=page, size=size)
+
+
+@router.get("/stats")
+def stats() -> dict[str, Any]:
+    """统计卡片：待排期、清洗中与本月用水量；已取消的任务不进待排期口径。"""
+    return {"cards": service.stats()}
+
+
+@router.get("/export")
+def export_entries() -> dict[str, Any]:
+    """导出组件清洗清单：返回当前过滤条件下的全量数据。"""
+    items, total = service.list_entries(page=1, size=10000)
+    return {"module": "cleaning", "total": total, "items": items}
 
 
 @router.get("/{entry_id}", response_model=dict)
@@ -56,10 +74,3 @@ def run_action(entry_id: int, payload: EntryPayload) -> ActionResult:
     if entry is None:
         return ActionResult(ok=False, message=message)
     return ActionResult(ok=True, message=message, entry=entry)
-
-
-@router.get("/export")
-def export_entries() -> dict[str, Any]:
-    """导出组件清洗清单：返回当前过滤条件下的全量数据。"""
-    items, total = service.list_entries(page=1, size=10000)
-    return {"module": "cleaning", "total": total, "items": items}
